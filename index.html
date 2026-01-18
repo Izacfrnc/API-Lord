@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LORD Inventory System | Controle de Estoque</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Menu Lateral -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">L</div>
+                    <div class="logo-text">
+                        <h1>LORD</h1>
+                        <p>Inventory System</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-items">
+                <a href="#dashboard" class="menu-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>DASHBOARD</span>
+                </a>
+                <a href="#cadastro" class="menu-item" data-section="cadastro">
+                    <i class="fas fa-box"></i>
+                    <span>CADASTRO</span>
+                </a>
+                <a href="#entrada" class="menu-item" data-section="entrada">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>ENTRADA</span>
+                </a>
+                <a href="#saida" class="menu-item" data-section="saida">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>SAÍDA</span>
+                </a>
+                <a href="#controle" class="menu-item" data-section="controle">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>CONTROLE</span>
+                </a>
+                <a href="#compras" class="menu-item" data-section="compras">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>COMPRAS</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="storage-info">
+                    <div class="storage-bar">
+                        <div class="storage-fill" id="storageFill"></div>
+                    </div>
+                    <p>Armazenamento local</p>
+                </div>
+                <div class="last-save" id="lastSave">
+                    Último salvo: --
+                </div>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Cabeçalho -->
+            <header class="header">
+                <div class="header-left">
+                    <h2 id="currentSection">Dashboard</h2>
+                    <p id="currentDate" class="subtitle">Carregando data...</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" id="refreshBtn" title="Atualizar dados">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="btn-primary" id="resetBtn">
+                        <i class="fas fa-redo"></i> Restaurar Dados
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard -->
+            <section id="dashboard" class="content-section active">
+                <div class="metrics-grid">
+                    <div class="metric-card metric-primary">
+                        <div class="metric-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Total em Estoque</h3>
+                            <div class="metric-value" id="totalStock">105</div>
+                            <div class="metric-change">Unidades totais</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card metric-secondary">
+                        <div class="metric-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Custo Total</h3>
+                            <div class="metric-value" id="totalCost">R$ 1.974,60</div>
+                            <div class="metric-change">Investimento em estoque</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card metric-success">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Faturamento</h3>
+                            <div class="metric-value" id="totalRevenue">R$ 1.095,00</div>
+                            <div class="metric-change">Vendas realizadas</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card metric-warning">
+                        <div class="metric-icon">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Lucro Total</h3>
+                            <div class="metric-value" id="totalProfit">R$ -879,60</div>
+                            <div class="metric-change">Faturamento - Custo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Saldo Acumulado por Mês</h3>
+                            <select id="chartYear" class="chart-select">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Estoque por Produto</h3>
+                            <div class="chart-legend">
+                                <span class="legend-item"><div class="legend-color" style="background-color: #3498db"></div> Atual</span>
+                                <span class="legend-item"><div class="legend-color" style="background-color: #2ecc71"></div> Mínimo</span>
+                                <span class="legend-item"><div class="legend-color" style="background-color: #f39c12"></div> Desejável</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alerts-container">
+                    <div class="section-title">
+                        <h3><i class="fas fa-exclamation-circle"></i> Alertas de Estoque</h3>
+                        <span class="badge badge-danger" id="alertCount">2</span>
+                    </div>
+                    <div class="alerts-grid" id="alertsGrid">
+                        <div class="alert-item alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div class="alert-content">
+                                <strong>Xícara Comum Preta</strong>
+                                <p>Estoque zerado! Mínimo: 50 unidades</p>
+                            </div>
+                        </div>
+                        <div class="alert-item alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div class="alert-content">
+                                <strong>Xícara Grande</strong>
+                                <p>Estoque zerado! Mínimo: 15 unidades</p>
+                            </div>
+                        </div>
+                        <div class="alert-item alert-warning">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div class="alert-content">
+                                <strong>Xícara Comum Branca</strong>
+                                <p>Estoque abaixo do desejável: 20/75 unidades</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cadastro -->
+            <section id="cadastro" class="content-section">
+                <div class="section-title">
+                    <h3><i class="fas fa-box"></i> Cadastro de Produtos</h3>
+                    <p>Gerencie os produtos do seu estoque</p>
+                </div>
+                
+                <div class="card">
+                    <form id="productForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="productId">ID do Produto</label>
+                                <input type="text" id="productId" readonly placeholder="Gerado automaticamente">
+                            </div>
+                            <div class="form-group">
+                                <label for="productName">Nome do Produto *</label>
+                                <input type="text" id="productName" required placeholder="Ex: Xícara Comum Branca">
+                            </div>
+                            <div class="form-group">
+                                <label for="productMin">Estoque Mínimo *</label>
+                                <input type="number" id="productMin" min="0" required value="50">
+                                <div class="form-hint">Quantidade mínima em estoque</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="productDes">Estoque Desejável *</label>
+                                <input type="number" id="productDes" min="0" required value="75">
+                                <div class="form-hint">Quantidade ideal em estoque</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="productCost">Custo Unitário (R$) *</label>
+                                <div class="input-group">
+                                    <span class="input-prefix">R$</span>
+                                    <input type="number" id="productCost" min="0" step="0.01" required value="13.33">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="productPrice">Preço de Venda (R$) *</label>
+                                <div class="input-group">
+                                    <span class="input-prefix">R$</span>
+                                    <input type="number" id="productPrice" min="0" step="0.01" required value="35.00">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> Salvar Produto
+                            </button>
+                            <button type="button" id="clearForm" class="btn-secondary">
+                                <i class="fas fa-times"></i> Limpar
+                            </button>
+                            <button type="button" id="cancelEdit" class="btn-secondary" style="display: none;">
+                                <i class="fas fa-ban"></i> Cancelar Edição
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Produtos Cadastrados</h4>
+                        <div class="card-actions">
+                            <input type="text" id="searchProducts" placeholder="Buscar produto..." class="search-input">
+                            <button class="btn-icon" id="sortProducts" title="Ordenar">
+                                <i class="fas fa-sort-amount-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="productsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Produto</th>
+                                    <th>Mínimo</th>
+                                    <th>Desejável</th>
+                                    <th>Custo (R$)</th>
+                                    <th>Preço (R$)</th>
+                                    <th>Estoque</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <!-- Produtos serão carregados via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Entrada -->
+            <section id="entrada" class="content-section">
+                <div class="section-title">
+                    <h3><i class="fas fa-arrow-down"></i> Registro de Entrada</h3>
+                    <p>Adicione produtos ao estoque</p>
+                </div>
+                
+                <div class="card">
+                    <form id="entryForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="entryProduct">Produto *</label>
+                                <select id="entryProduct" required>
+                                    <option value="">Selecione um produto</option>
+                                    <!-- Produtos carregados via JS -->
+                                </select>
+                                <div class="form-info" id="currentStockInfo"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="entryQuantity">Quantidade *</label>
+                                <input type="number" id="entryQuantity" min="1" required value="1">
+                                <div class="form-hint">Quantidade a ser adicionada</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="entryType">Tipo de Entrada *</label>
+                                <select id="entryType" required>
+                                    <option value="Compra">Compra</option>
+                                    <option value="Inventário" selected>Inventário</option>
+                                    <option value="Devolução">Devolução</option>
+                                    <option value="Ajuste">Ajuste</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="entryCost">Custo Unitário (R$)</label>
+                                <div class="input-group">
+                                    <span class="input-prefix">R$</span>
+                                    <input type="number" id="entryCost" min="0" step="0.01" placeholder="Custo padrão será usado">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="entryDate">Data da Entrada</label>
+                                <input type="date" id="entryDate" value="2026-01-17">
+                            </div>
+                            <div class="form-group">
+                                <label for="entryTotal">Custo Total (R$)</label>
+                                <div class="input-group">
+                                    <input type="text" id="entryTotal" readonly value="R$ 0,00" class="total-input">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-check"></i> Registrar Entrada
+                            </button>
+                            <button type="reset" class="btn-secondary">
+                                <i class="fas fa-broom"></i> Limpar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Histórico de Entradas</h4>
+                        <div class="card-actions">
+                            <input type="month" id="filterEntryMonth" class="date-filter">
+                            <button class="btn-secondary" id="clearEntryFilter">
+                                <i class="fas fa-filter"></i> Limpar Filtro
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="entriesTable">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Produto</th>
+                                    <th>Tipo</th>
+                                    <th>Quantidade</th>
+                                    <th>Custo Unit.</th>
+                                    <th>Custo Total</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="entriesTableBody">
+                                <!-- Entradas carregadas via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Saída -->
+            <section id="saida" class="content-section">
+                <div class="section-title">
+                    <h3><i class="fas fa-arrow-up"></i> Registro de Saída</h3>
+                    <p>Registre vendas ou saídas do estoque</p>
+                </div>
+                
+                <div class="card">
+                    <form id="outputForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="outputProduct">Produto *</label>
+                                <select id="outputProduct" required>
+                                    <option value="">Selecione um produto</option>
+                                    <!-- Produtos carregados via JS -->
+                                </select>
+                                <div class="form-info" id="availableStockInfo"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="outputQuantity">Quantidade *</label>
+                                <input type="number" id="outputQuantity" min="1" required value="1">
+                                <div class="form-hint" id="maxStockHint"></div>
+                                <div class="form-error" id="stockError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="outputPrice">Preço de Venda (R$)</label>
+                                <div class="input-group">
+                                    <span class="input-prefix">R$</span>
+                                    <input type="number" id="outputPrice" min="0" step="0.01" placeholder="Preço padrão será usado">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="outputDate">Data da Saída</label>
+                                <input type="date" id="outputDate" value="2026-01-18">
+                            </div>
+                            <div class="form-group">
+                                <label for="outputTotal">Faturamento Total (R$)</label>
+                                <div class="input-group">
+                                    <input type="text" id="outputTotal" readonly value="R$ 0,00" class="total-input">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="submitOutput">
+                                <i class="fas fa-check"></i> Registrar Saída
+                            </button>
+                            <button type="reset" class="btn-secondary">
+                                <i class="fas fa-broom"></i> Limpar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Histórico de Saídas</h4>
+                        <div class="card-actions">
+                            <input type="month" id="filterOutputMonth" class="date-filter">
+                            <button class="btn-secondary" id="clearOutputFilter">
+                                <i class="fas fa-filter"></i> Limpar Filtro
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="outputsTable">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Produto</th>
+                                    <th>Quantidade</th>
+                                    <th>Preço Unit.</th>
+                                    <th>Faturamento Total</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="outputsTableBody">
+                                <!-- Saídas carregadas via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Controle -->
+            <section id="controle" class="content-section">
+                <div class="section-title">
+                    <h3><i class="fas fa-clipboard-list"></i> Controle de Estoque</h3>
+                    <p>Visão geral e status do estoque</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Resumo do Estoque</h4>
+                        <div class="card-actions">
+                            <div class="status-filter">
+                                <label for="stockFilter">Filtrar por Status:</label>
+                                <select id="stockFilter">
+                                    <option value="all">Todos</option>
+                                    <option value="ok">OK</option>
+                                    <option value="warning">Abaixo do Desejável</option>
+                                    <option value="danger">Abaixo do Mínimo</option>
+                                </select>
+                            </div>
+                            <button class="btn-primary" id="exportCSV">
+                                <i class="fas fa-file-export"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="stockTable">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Entrada</th>
+                                    <th>Saída</th>
+                                    <th>Mín</th>
+                                    <th>Des</th>
+                                    <th>Atual</th>
+                                    <th>Status</th>
+                                    <th>Custo Total</th>
+                                    <th>Faturamento</th>
+                                    <th>Lucro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody">
+                                <!-- Dados carregados via JS -->
+                            </tbody>
+                            <tfoot id="stockTableFooter">
+                                <!-- Totais carregados via JS -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Legenda de Status</h4>
+                    </div>
+                    <div class="legend-grid">
+                        <div class="legend-item">
+                            <div class="status-indicator status-ok"></div>
+                            <div class="legend-content">
+                                <strong>OK</strong>
+                                <p>Estoque acima do desejável</p>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="status-indicator status-warning"></div>
+                            <div class="legend-content">
+                                <strong>Atenção</strong>
+                                <p>Estoque entre mínimo e desejável</p>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="status-indicator status-danger"></div>
+                            <div class="legend-content">
+                                <strong>Alerta</strong>
+                                <p>Estoque abaixo do mínimo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compras -->
+            <section id="compras" class="content-section">
+                <div class="section-title">
+                    <h3><i class="fas fa-shopping-cart"></i> Sugestões de Compras</h3>
+                    <p>Recomendações baseadas no estoque atual</p>
+                </div>
+                
+                <div class="metrics-grid compact">
+                    <div class="metric-card metric-danger">
+                        <div class="metric-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Produtos em Alerta</h3>
+                            <div class="metric-value" id="alertProducts">2</div>
+                            <div class="metric-change">Abaixo do mínimo</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card metric-warning">
+                        <div class="metric-icon">
+                            <i class="fas fa-shopping-basket"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Para Reposição</h3>
+                            <div class="metric-value" id="reorderProducts">4</div>
+                            <div class="metric-change">Abaixo do desejável</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card metric-info">
+                        <div class="metric-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Custo Estimado</h3>
+                            <div class="metric-value" id="estimatedCost">R$ 1.266,60</div>
+                            <div class="metric-change">Para repor estoque</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Lista de Sugestões de Compra</h4>
+                        <div class="card-actions">
+                            <button class="btn-secondary" id="printList">
+                                <i class="fas fa-print"></i> Imprimir Lista
+                            </button>
+                            <button class="btn-primary" id="simulatePurchase">
+                                <i class="fas fa-play-circle"></i> Simular Compra
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="purchasesTable">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Estoque Atual</th>
+                                    <th>Mínimo</th>
+                                    <th>Desejável</th>
+                                    <th>Faltando</th>
+                                    <th>Custo Unit.</th>
+                                    <th>Custo Total</th>
+                                    <th>Prioridade</th>
+                                    <th>Ação Sugerida</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchasesTableBody">
+                                <!-- Sugestões carregadas via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Simulação de Compra</h4>
+                    </div>
+                    <div class="simulation-container">
+                        <div class="simulation-form">
+                            <div class="form-group">
+                                <label for="simulationBudget">Orçamento Disponível (R$)</label>
+                                <div class="input-group">
+                                    <span class="input-prefix">R$</span>
+                                    <input type="number" id="simulationBudget" min="0" step="100" value="1000">
+                                </div>
+                            </div>
+                            <button class="btn-primary" id="runSimulation">
+                                <i class="fas fa-play"></i> Executar Simulação
+                            </button>
+                        </div>
+                        <div class="simulation-results" id="simulationResults">
+                            <p>Execute uma simulação para ver os resultados</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rodapé -->
+            <footer class="footer">
+                <div class="footer-content">
+                    <div class="footer-logo">
+                        <strong>LORD Inventory System</strong>
+                        <p>Sistema de Controle de Estoque Avançado</p>
+                    </div>
+                    <div class="footer-info">
+                        <p>Desenvolvido para controle de canecas e xícaras</p>
+                        <p>Dados armazenados localmente | Versão 2.0</p>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Confirmação</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">Tem certeza que deseja prosseguir com esta ação?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modalCancel">Cancelar</button>
+                <button class="btn-primary" id="modalConfirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
