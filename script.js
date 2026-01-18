@@ -433,7 +433,7 @@ const dataManager = {
 const uiManager = {
     init() {
         this.setupEventListeners();
-        this.updateCurrentDate();
+        this.setupAutoDateUpdate(); // <-- LINHA NOVA ADICIONADA 18/01/2026
         this.loadProducts();
         this.updateDashboard();
         this.updateCharts();
@@ -445,6 +445,46 @@ const uiManager = {
             dataManager.load();
         }
     },
+    
+    setupAutoDateUpdate() {
+        // Atualizar data uma vez ao carregar
+        this.updateCurrentDate();
+        
+        // Atualizar a cada minuto (para garantir que a data está correta)
+        setInterval(() => {
+            this.updateCurrentDate();
+        }, 60000); // 60 segundos
+        
+        // Verificar se a data mudou a cada hora
+        setInterval(() => {
+            const hoje = new Date().toDateString();
+            if (this.lastDateChecked !== hoje) {
+                this.updateCurrentDate();
+                this.lastDateChecked = hoje;
+                
+                // Atualizar também as datas padrão nos formulários
+                const hojeInput = new Date().toISOString().split('T')[0];
+                document.getElementById('entryDate').value = hojeInput;
+                document.getElementById('outputDate').value = hojeInput;
+            }
+        }, 3600000); 
+        // 1 hora
+    },
+    
+    updateCurrentDate() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        const dataFormatada = now.toLocaleDateString('pt-BR', options);
+        document.getElementById('currentDate').textContent = 
+            `Hoje é ${dataFormatada}`;
+    },
+    
+    // ... o resto das funções permanece IGUAL ...
     
     setupEventListeners() {
         // Navegação do menu
@@ -1582,10 +1622,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar interface
     uiManager.init();
     
-    // Configurar data atual nos formulários
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('entryDate').value = today;
-    document.getElementById('outputDate').value = today;
+    // CORREÇÃO: Formatar data atual no formato brasileiro para os formulários
+    const hoje = new Date();
+    const hojeFormatada = hoje.toLocaleDateString('pt-BR');
+    const hojeInput = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD para input[type=date]
+    
+    document.getElementById('entryDate').value = hojeInput;
+    document.getElementById('outputDate').value = hojeInput;
     
     // Configurar select de ano para gráficos
     const currentYear = new Date().getFullYear();
